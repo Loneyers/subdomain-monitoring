@@ -1,0 +1,31 @@
+name: "dsm"
+description: "Dynamic subdomain monitoring"
+
+inputs:
+  domain:
+    description: "File containing list of domains to enumerate"
+    required: true
+    default: "domain.txt"
+  output:
+    description: "File to save output result"
+    required: true
+    default: "output.txt"
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        git clone https://github.com/projectdiscovery/subfinder.git
+        cd subfinder/v2/cmd/subfinder
+        go build
+        echo "${{ github.workspace }}/subfinder/v2/cmd/subfinder" >> $GITHUB_PATH
+      shell: bash
+    - run: |
+        git clone https://github.com/projectdiscovery/httpx.git
+        cd httpx/cmd/httpx
+        go build
+        echo "${{ github.workspace }}/httpx/cmd/httpx" >> $GITHUB_PATH
+      shell: bash
+    - run: |
+        subfinder -dL ${{ inputs.domain }} -silent| httpx -silent | sort |uniq > ${{ inputs.output }}
+      shell: bash
