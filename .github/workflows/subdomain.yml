@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    steps:      
+      - uses: actions/checkout@v2      
+
+      - uses: Loneyers/subdomain-monitoring@main
+        with:
+          domain: "domain.txt"
+          output: "output.txt"
+          
+      - name: upload
+        run: |
+          git config --local user.email "loneyershi@gmail.com"
+          git config --local user.name "Loneyers"
+          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git pull --rebase
+          git add output.txt
+          git commit -m "upload subdomain"
+          git push
